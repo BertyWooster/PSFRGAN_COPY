@@ -118,8 +118,11 @@ if __name__ == '__main__':
     save_imgs(hq_faces, save_hq_dir)
 
     print('======> Paste the enhanced faces back to the original image.')
-    hq_img = past_faces_back(img, hq_faces, tform_params, upscale=opt.test_upscale) 
-    final_save_path = os.path.join(opt.results_dir, 'hq_final.jpg') 
+    hq_img = past_faces_back(img, hq_faces, tform_params, upscale=opt.test_upscale)
+    if opt.fast_save_path == "":
+        final_save_path = os.path.join(opt.results_dir, 'hq_final.jpg')
+    else:
+        final_save_path = opt.fast_save_path
     print('======> Save final result to', final_save_path)
     io.imsave(final_save_path, hq_img)
 

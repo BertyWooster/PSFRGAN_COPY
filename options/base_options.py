@@ -138,12 +138,16 @@ class BaseOptions():
 
         # Find avaliable GPUs automatically
         if opt.gpus > 0:
-            opt.gpu_ids = utils.get_gpu_memory_map()[1][:opt.gpus]
-            if not isinstance(opt.gpu_ids, list):
-                opt.gpu_ids = [opt.gpu_ids]
-            torch.cuda.set_device(opt.gpu_ids[0])
-            opt.device = torch.device('cuda:{}'.format(opt.gpu_ids[0 % opt.gpus]))
-            opt.data_device = torch.device('cuda:{}'.format(opt.gpu_ids[1 % opt.gpus]))
+            try:
+                opt.gpu_ids = utils.get_gpu_memory_map()[1][:opt.gpus]
+                if not isinstance(opt.gpu_ids, list):
+                    opt.gpu_ids = [opt.gpu_ids]
+                torch.cuda.set_device(opt.gpu_ids[0])
+                opt.device = torch.device('cuda:{}'.format(opt.gpu_ids[0 % opt.gpus]))
+                opt.data_device = torch.device('cuda:{}'.format(opt.gpu_ids[1 % opt.gpus]))
+            except:
+                opt.gpu_ids = []
+                opt.device = torch.device('cpu')
         else:
             opt.gpu_ids = []
             opt.device = torch.device('cpu')
