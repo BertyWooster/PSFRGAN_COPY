@@ -1,7 +1,7 @@
 import dlib
 import os
 import cv2
-import numpy as np 
+import numpy as np
 from tqdm import tqdm
 from skimage import transform as trans
 from skimage import io
@@ -12,16 +12,16 @@ def get_points(img, detector, shape_predictor, size_threshold=999):
     dets = detector(img, 1)
     if len(dets) == 0:
         return None
-    
+
     all_points = []
     for det in dets:
         if isinstance(detector, dlib.cnn_face_detection_model_v1):
             rec = det.rect # for cnn detector
         else:
             rec = det
-        if rec.width() > size_threshold or rec.height() > size_threshold: 
+        if rec.width() > size_threshold or rec.height() > size_threshold:
             break
-        shape = shape_predictor(img, rec) 
+        shape = shape_predictor(img, rec)
         single_points = []
         for i in range(5):
             single_points.append([shape.part(i).x, shape.part(i).y])
@@ -30,6 +30,7 @@ def get_points(img, detector, shape_predictor, size_threshold=999):
         return None
     else:
         return all_points
+
 
 def align_and_save(img, save_path, src_points, template_path, template_scale=1):
     out_size = (512, 512)
@@ -47,8 +48,8 @@ def align_and_save(img, save_path, src_points, template_path, template_scale=1):
         dlib.save_image(crop_img.astype(np.uint8), save_path)
         print('Saving image', save_path)
 
+
 def align_and_save_dir(src_dir, save_dir, template_path='./pretrain_models/FFHQ_template.npy', template_scale=2, use_cnn_detector=True):
-    out_size = (512, 512)    
     if use_cnn_detector:
         detector = dlib.cnn_face_detection_model_v1('./pretrain_models/mmod_human_face_detector.dat')
     else:
@@ -82,5 +83,5 @@ if __name__ == '__main__':
 
 
 
-            
+
 
