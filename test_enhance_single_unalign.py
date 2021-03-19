@@ -116,7 +116,6 @@ if __name__ == '__main__':
     print('======> Save parsing map and the enhanced faces.')
     save_imgs(lq_parse_maps, save_parse_dir)
     save_imgs(hq_faces, save_hq_dir)
-
     print('======> Paste the enhanced faces back to the original image.')
     hq_img = past_faces_back(img, hq_faces, tform_params, upscale=opt.test_upscale)
     if opt.fast_save_path == "":
