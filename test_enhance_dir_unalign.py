@@ -38,7 +38,7 @@ if __name__ == '__main__':
         print('======> Saving aligned LQ faces to', save_lq_dir)
         save_imgs(aligned_faces, save_lq_dir)
 
-        hq_faces, lq_parse_maps = enhance_faces(aligned_faces, enhance_model)
+        hq_faces, lq_parse_maps, back_map = enhance_faces(aligned_faces, enhance_model)
         # Save LQ parsing maps and enhanced faces
         save_parse_dir = os.path.join(save_current_dir, 'ParseMaps') 
         save_hq_dir = os.path.join(save_current_dir, 'HQ') 

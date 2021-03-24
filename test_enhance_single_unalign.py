@@ -9,6 +9,7 @@ from tqdm import tqdm
 from skimage import transform as trans
 from skimage import io
 from degradation_model import *
+from background_postprocessing import *
 
 import torch
 from utils import utils
@@ -64,10 +65,11 @@ def enhance_faces(LQ_faces, model):
             lq_tensor = lq_tensor.unsqueeze(0).float().to(model.device)
             parse_map, _ = model.netP(lq_tensor)
             parse_map_onehot = (parse_map == parse_map.max(dim=1, keepdim=True)[0]).float()
+            back_map = get_background_map(parse_map_onehot)
             _, output_SR = model.netG(lq_tensor, parse_map_onehot)
         hq_faces.append(utils.tensor_to_img(output_SR))
         lq_parse_maps.append(utils.color_parse_map(parse_map_onehot)[0])
-    return hq_faces, lq_parse_maps
+    return hq_faces, lq_parse_maps, back_map
 
 
 def past_faces_back(img, hq_faces, tform_params, upscale=1):
@@ -76,7 +78,6 @@ def past_faces_back(img, hq_faces, tform_params, upscale=1):
     for hq_img, tform in tqdm(zip(hq_faces, tform_params), total=len(hq_faces)):
         tform.params[0:2, 0:2] /= upscale
         back_img = trans.warp(hq_img / 255., tform, output_shape=[int(h * upscale), int(w * upscale)], order=3) * 255
-
         # blur mask to avoid border artifacts
         mask = (back_img == 0)
         mask = cv2.blur(mask.astype(np.float32), (5, 5))
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     save_imgs(aligned_faces, save_lq_dir)
 
     enhance_model = def_models(opt)
-    hq_faces, lq_parse_maps = enhance_faces(aligned_faces, enhance_model)
+    hq_faces, lq_parse_maps, back_map = enhance_faces(aligned_faces, enhance_model)
     # Save LQ parsing maps and enhanced faces
     save_parse_dir = os.path.join(opt.results_dir, 'ParseMaps')
     save_hq_dir = os.path.join(opt.results_dir, 'HQ')
@@ -124,6 +125,8 @@ if __name__ == '__main__':
     save_imgs(hq_faces, save_hq_dir)
     print('======> Paste the enhanced faces back to the original image.')
     hq_img = past_faces_back(img, hq_faces, tform_params, upscale=opt.test_upscale)
+    # set_background(hq_img, back_map, dlib.load_rgb_image("./test_data/background/background.jpg"))  # TODO
+
     if opt.fast_save_path == "":
         final_save_path = os.path.join(opt.results_dir, 'hq_final.jpg')
     else:
